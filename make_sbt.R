@@ -26,16 +26,39 @@ for(i in 1995:2021){
       df = read_csv(paste0(dir_data, file_list[k]), col_names = col_names)
       df2 = rbind(df, df2)
     }
-    # head(df2)
-    # df_summary_temp = df2 %>% group_by(tag) %>% summarize(mean = mean(as.numeric(temp.)), sd = sd(as.numeric(temp.))) %>% mutate(month = as.numeric(paste(j)), year = as.numeric(paste(i)))
-    # df_summary = rbind(df_summary, df_summary_temp)
+    head(df2)
+    df2_2 = df2[-1, ]
+    df_summary = rbind(df_summary, df2_2)
   }
-  head(df2)
-  df2_2 = df2[-1, ]
-  # df_summary_temp = df2_2 %>% group_by(tag) %>% summarize(mean = mean(as.numeric(temp.)), sd = sd(as.numeric(temp.))) %>% mutate(year = as.numeric(paste(i)))
-  df_summary = rbind(df_summary, df2_2)
 }
 
 setwd(dir_sbt)
 write.csv(df_summary, "df_summary_daily.csv", fileEncoding = "CP932", row.names = F)
 
+df_summary = read_csv("df_summary_daily.csv")
+df_summary$temp. = as.numeric(df_summary$temp.)
+df_summary$YEAR = as.numeric(df_summary$YEAR)
+df_summary$MON = as.numeric(df_summary$MON)
+df_summary$DAY = as.numeric(df_summary$DAY)
+summary(df_summary)
+unique(df_summary$tag)
+
+df_summary[is.na(df_summary)] = 0
+check = df_summary %>% filter(YEAR == 0)
+
+tag = unique(df_summary$tag)
+for(i in 1:length(tag)){
+  df1 = df_summary %>% filter(tag == tag[i])
+  df1$temp. = as.numeric(df1$temp.)
+  df1$YEAR = as.numeric(df1$YEAR)
+  df1$MON = as.numeric(df1$MON)
+  df1$DAY = as.numeric(df1$DAY)
+  df1$mean = mean(df1$temp.)
+  df1$ano = df1$temp.-df1$mean
+  
+  q = quantile(df1$temp., c(0.1, 0.9))
+  # df1$q10 = q[1]
+  df1$q90 = q[2]
+  
+  df2 = df1 %>% filter(temp. > q[2]) %>% arrange(YEAR, MON, DAY)
+}
