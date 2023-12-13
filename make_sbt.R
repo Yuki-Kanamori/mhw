@@ -35,7 +35,7 @@ for(i in 1995:2021){
 setwd(dir_sbt)
 write.csv(df_summary, "df_summary_daily.csv", fileEncoding = "CP932", row.names = F)
 
-df_summary = read_csv("df_summary_daily.csv")
+df_summary = read_gcsv("df_summary_daily.csv")
 df_summary$temp. = as.numeric(df_summary$temp.)
 df_summary$YEAR = as.numeric(df_summary$YEAR)
 df_summary$MON = as.numeric(df_summary$MON)
@@ -45,6 +45,30 @@ unique(df_summary$tag)
 
 df_summary[is.na(df_summary)] = 0
 check = df_summary %>% filter(YEAR == 0)
+unique(check$tag)
+
+df_summary = df_summary %>% filter(YEAR != 0)
+
+mhw = read.csv("mhw.csv")
+
+df = df_summary %>% group_by(YEAR, MON, DAY) %>% summarize(mean = mean(temp.))
+df$lmean = mean(df$mean)
+df$ano = df$lmean - df$mean
+df$q90 = quantile(df$mean, 0.9)
+
+df2 = df %>% filter(mean > q90)
+
+df_mhw = NULL
+for(i in 1995:2021){
+  for(j in 1:12){
+    df3 = df2 %>% filter(YEAR == i, MON == j)
+    if(nrow(df3) > 4){
+      # df3 = left_join(df3, mhw, by = "DAY")
+      df_mhw = rbind(df_mhw, df3)
+    }
+  }
+}
+
 
 tag = unique(df_summary$tag)
 for(i in 1:length(tag)){
