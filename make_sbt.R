@@ -40,6 +40,8 @@ df_summary$temp. = as.numeric(df_summary$temp.)
 df_summary$YEAR = as.numeric(df_summary$YEAR)
 df_summary$MON = as.numeric(df_summary$MON)
 df_summary$DAY = as.numeric(df_summary$DAY)
+df_summary$lonE = as.numeric(df_summary$lonE)
+df_summary$latE = as.numeric(df_summary$latE)
 summary(df_summary)
 unique(df_summary$tag)
 
@@ -47,7 +49,7 @@ df_summary[is.na(df_summary)] = 0
 check = df_summary %>% filter(YEAR == 0)
 unique(check$tag)
 
-df_summary = df_summary %>% filter(YEAR != 0)
+df_summary = df_summary %>% filter(YEAR != 0) %>% filter(between(lonE, 140.5, 143)) %>% filter(between(latE, 36, 42))
 
 mhw = read.csv("mhw.csv")
 
@@ -70,19 +72,4 @@ for(i in 1995:2021){
 }
 
 
-tag = unique(df_summary$tag)
-for(i in 1:length(tag)){
-  df1 = df_summary %>% filter(tag == tag[i])
-  df1$temp. = as.numeric(df1$temp.)
-  df1$YEAR = as.numeric(df1$YEAR)
-  df1$MON = as.numeric(df1$MON)
-  df1$DAY = as.numeric(df1$DAY)
-  df1$mean = mean(df1$temp.)
-  df1$ano = df1$temp.-df1$mean
-  
-  q = quantile(df1$temp., c(0.1, 0.9))
-  # df1$q10 = q[1]
-  df1$q90 = q[2]
-  
-  df2 = df1 %>% filter(temp. > q[2]) %>% arrange(YEAR, MON, DAY)
-}
+
