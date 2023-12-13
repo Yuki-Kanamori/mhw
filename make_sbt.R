@@ -1,6 +1,8 @@
 require(tidyverse)
 require(ggh4x)
 require(gridExtra)
+require(maps)
+require(mapdata)
 
 dir_sbt = "/Users/Yuki/Dropbox/community/sbt/"
 dir_save = "/Users/Yuki/Dropbox/community/"
@@ -71,5 +73,25 @@ for(i in 1995:2021){
   }
 }
 
+df4 = df_summary %>% mutate(mean = mean(temp.)) %>% mutate(ano = mean - temp.)
 
+col = scale_fill_gradient2(low='blue', mid='gray80', high='red4', midpoint = 0)
+pal = c("midnightblue", "steelblue2", "gray80", "palegoldenrod", "tan1", "tomato", "red", "red4")
+pal = c("midnightblue", "steelblue2", "gray80", "palegoldenrod", "red", "red4")
+col = scale_fill_gradientn(colors = pal)
 
+world_map <- map_data("world")
+jap <- subset(world_map, world_map$region == "Japan")
+jap_cog <- jap[jap$lat > 35 & jap$lat < 45 & jap$long > 130 & jap$long < 146, ]
+pol = geom_polygon(data = jap_cog, aes(x=long, y=lat, group=group), colour="black", fill="black")
+c_map = coord_map(projection = "azequidistant", xlim = c(min(df4$lonE), max(df4$lonE)), ylim = c(min(df4$latE), max(df4$latE)))
+# g+pol+c_map
+
+g = ggplot()
+t = geom_tile(data = df4 %>% filter(YEAR == 2021) %>% filter(MON == 8), aes(x = lonE, y = latE, z = ano, fill = ano))
+c = geom_contour(data = df4, aes(x = lonE, y = latE, z = ano, fill = ano), color='black', bins = 50)
+f = facet_wrap(~ MON, ncol = 6)
+labs = labs(x = "Longitude", y = "Latitude", fill = "Anomaly")
+
+fig = g+t+c+labs+pol+c_map+theme_bw()+col+f
+ggsave(filename = paste0("ano2021.pdf"), plot = fig, units = "in", width = 8.27, height = 11.69)
